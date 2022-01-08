@@ -7,27 +7,27 @@ import (
 
 func TestFullNodeFlag(t *testing.T) {
 	assert.Equal(t, fullNodeFlag(0), flagEmpty)
-	assert.Equal(t, fullNodeFlag(2), flagInt)
-	assert.Equal(t, fullNodeFlag(4), flagFloat)
-	assert.Equal(t, fullNodeFlag(8), flagBool)
+	assert.Equal(t, fullNodeFlag(2), flagHasInt)
+	assert.Equal(t, fullNodeFlag(4), flagHasFloat)
+	assert.Equal(t, fullNodeFlag(8), flagHasBool)
 	//assert.Equal(t, reflect.Uint16, reflect.TypeOf(flagListPrototype).Kind())
 }
 
 func TestFullNodeFlag_Add(t *testing.T) {
 	flags := flagEmpty
-	flags.add(flagBool)
-	assert.Equal(t, flagBool, flags)
-	flags.add(flagString)
-	assert.Equal(t, flagBool|flagString, flags)
+	flags.add(flagHasBool)
+	assert.Equal(t, flagHasBool, flags)
+	flags.add(flagHasString)
+	assert.Equal(t, flagHasBool|flagHasString, flags)
 }
 
 func TestFullNodeFlag_Delete(t *testing.T) {
-	flags := flagString | flagFloat | flagObj
-	flags.delete(flagString)
-	assert.Equal(t, flagFloat|flagObj, flags)
-	flags.delete(flagFloat)
-	assert.Equal(t, flagObj, flags)
-	flags.delete(flagObj)
+	flags := flagHasString | flagHasFloat | flagHasObj
+	flags.delete(flagHasString)
+	assert.Equal(t, flagHasFloat|flagHasObj, flags)
+	flags.delete(flagHasFloat)
+	assert.Equal(t, flagHasObj, flags)
+	flags.delete(flagHasObj)
 	assert.Equal(t, flagEmpty, flags)
 }
 

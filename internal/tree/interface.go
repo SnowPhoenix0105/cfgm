@@ -44,6 +44,7 @@ type ReadableInnerNode interface {
 	Has(key NodeKey) bool
 	IsNullFor(key NodeKey) bool
 	NullableFor(key NodeKey) bool
+	ClearWhenEnterFor(key NodeKey) bool
 	ModifyTime() ModifyTime
 
 	Desc() string
@@ -62,6 +63,7 @@ type InnerNode interface {
 	Delete(key NodeKey) InnerNode
 	SetNullFor(key NodeKey, value bool) InnerNode
 	SetNullableFor(key NodeKey, value bool) InnerNode
+	SetClearWhenEnterFor(key NodeKey, value bool) InnerNode
 	SetModifyTime(time ModifyTime) InnerNode
 
 	SetDesc(value string) InnerNode
@@ -83,6 +85,7 @@ type NodeWriter interface {
 	Delete(key NodeKey)
 	SetNullFor(key NodeKey, value bool)
 	SetNullableFor(key NodeKey, value bool)
+	SetClearWhenEnterFor(key NodeKey, value bool)
 	SetModifyTime(time ModifyTime)
 
 	SetDesc(value string)
@@ -123,6 +126,10 @@ func (node *Node) IsNullFor(key NodeKey) bool {
 
 func (node *Node) NullableFor(key NodeKey) bool {
 	return node.Raw.NullableFor(key)
+}
+
+func (node *Node) ClearWhenEnterFor(key NodeKey) bool {
+	return node.Raw.ClearWhenEnterFor(key)
 }
 
 func (node *Node) ModifyTime() ModifyTime {
@@ -173,12 +180,16 @@ func (node *Node) SetNullFor(key NodeKey, value bool) {
 	node.Raw = node.Raw.SetNullFor(key, value)
 }
 
-func (node *Node) SetModifyTime(time ModifyTime) {
-	node.Raw = node.Raw.SetModifyTime(time)
-}
-
 func (node *Node) SetNullableFor(key NodeKey, value bool) {
 	node.Raw = node.Raw.SetNullableFor(key, value)
+}
+
+func (node *Node) SetClearWhenEnterFor(key NodeKey, value bool) {
+	node.Raw = node.Raw.SetClearWhenEnterFor(key, value)
+}
+
+func (node *Node) SetModifyTime(time ModifyTime) {
+	node.Raw = node.Raw.SetModifyTime(time)
 }
 
 func (node *Node) Delete(key NodeKey) {

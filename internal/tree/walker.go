@@ -117,6 +117,10 @@ func (walker *walker) NullableFor(key NodeKey) bool {
 	return walker.currentNode.NullableFor(key)
 }
 
+func (walker *walker) ClearWhenEnterFor(key NodeKey) bool {
+	return walker.currentNode.ClearWhenEnterFor(key)
+}
+
 func (walker *walker) ModifyTime() ModifyTime {
 	return walker.currentNode.ModifyTime()
 }
@@ -262,6 +266,12 @@ func (walker *walker) SetNullFor(key NodeKey, value bool) {
 
 func (walker *walker) SetNullableFor(key NodeKey, value bool) {
 	walker.currentNode.SetNullableFor(key, value)
+	walker.currentNode.SetModifyTime(walker.time)
+	walker.setModifyTimeForParentNodes()
+}
+
+func (walker *walker) SetClearWhenEnterFor(key NodeKey, value bool) {
+	walker.currentNode.SetClearWhenEnterFor(key, value)
 	walker.currentNode.SetModifyTime(walker.time)
 	walker.setModifyTimeForParentNodes()
 }
