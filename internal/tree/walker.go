@@ -176,9 +176,13 @@ func (walker *walker) setModifyTimeForParentNodes() {
 	}
 }
 
+func (walker *walker) needClear(key NodeKey) bool {
+	return walker.currentNode.ClearWhenEnterFor(key) && walker.currentNode.ModifyTime() != walker.time
+}
+
 func (walker *walker) EnterObj(key string) {
 	var next *Node
-	if !walker.currentNode.Has(NodeKeyObj) {
+	if !walker.currentNode.Has(NodeKeyObj) || walker.needClear(NodeKeyObj) {
 		next = NewNode()
 		walker.currentNode.SetObj(map[string]*Node{key: next})
 		walker.currentNode.SetModifyTime(walker.time)
@@ -201,7 +205,7 @@ func (walker *walker) EnterObj(key string) {
 
 func (walker *walker) EnterList(index int) {
 	var next *Node
-	if !walker.currentNode.Has(NodeKeyList) {
+	if !walker.currentNode.Has(NodeKeyList) || walker.needClear(NodeKeyList) {
 		list := make(NodeList, index+1)
 		for i := 0; i <= index; i++ {
 			next = NewNode()
