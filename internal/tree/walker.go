@@ -5,6 +5,8 @@ type ReadonlyWalker interface {
 
 	TryEnterObj(key string) bool
 	TryEnterList(index int) bool
+	TryEnterObjPrototype() bool
+	TryEnterListPrototype() bool
 	Exit()
 }
 
@@ -14,6 +16,8 @@ type Walker interface {
 
 	EnterObj(key string)
 	EnterList(index int)
+	EnterObjPrototype()
+	EnterListPrototype()
 }
 
 func ReadFrom(root *Node) ReadonlyWalker {
@@ -74,6 +78,26 @@ func (walker *walker) TryEnterList(index int) bool {
 	}
 	walker.stack.push(walker.currentNode)
 	walker.currentNode = list[index]
+	return true
+}
+
+func (walker *walker) TryEnterObjPrototype() bool {
+	if !walker.currentNode.Has(NodeKeyObjPrototype) {
+		return false
+	}
+	next := walker.currentNode.ObjPrototype()
+	walker.stack.push(walker.currentNode)
+	walker.currentNode = next
+	return true
+}
+
+func (walker *walker) TryEnterListPrototype() bool {
+	if !walker.currentNode.Has(NodeKeyListPrototype) {
+		return false
+	}
+	next := walker.currentNode.ListPrototype()
+	walker.stack.push(walker.currentNode)
+	walker.currentNode = next
 	return true
 }
 
@@ -197,6 +221,34 @@ func (walker *walker) EnterList(index int) {
 			walker.currentNode.SetModifyTime(walker.time)
 			walker.setModifyTimeForParentNodes()
 		}
+	}
+	walker.stack.push(walker.currentNode)
+	walker.currentNode = next
+}
+
+func (walker *walker) EnterObjPrototype() {
+	var next *Node
+	if !walker.currentNode.Has(NodeKeyObjPrototype) {
+		next = NewNode()
+		walker.currentNode.SetObjPrototype(next)
+		walker.SetModifyTime(walker.time)
+		walker.setModifyTimeForParentNodes()
+	} else {
+		next = walker.currentNode.ObjPrototype()
+	}
+	walker.stack.push(walker.currentNode)
+	walker.currentNode = next
+}
+
+func (walker *walker) EnterListPrototype() {
+	var next *Node
+	if !walker.currentNode.Has(NodeKeyListPrototype) {
+		next = NewNode()
+		walker.currentNode.SetListPrototype(next)
+		walker.SetModifyTime(walker.time)
+		walker.setModifyTimeForParentNodes()
+	} else {
+		next = walker.currentNode.ListPrototype()
 	}
 	walker.stack.push(walker.currentNode)
 	walker.currentNode = next
