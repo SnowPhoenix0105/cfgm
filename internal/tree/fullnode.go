@@ -1,10 +1,5 @@
 package tree
 
-import (
-	"errors"
-	"fmt"
-)
-
 type fullNodeFlag int32
 
 const (
@@ -100,7 +95,8 @@ func (node *fullNode) Has(key NodeKey) bool {
 func (node *fullNode) ModifyTimeFor(key NodeKey) ModifyTime {
 	time, ok := node.modifyTime[key]
 	if !ok {
-		panic(errors.New(fmt.Sprintf("modify time for %s not exist", key.String())))
+		return -1
+		//panic(errors.New(fmt.Sprintf("modify time for %s not exist", key.String())))
 	}
 	return time
 }
