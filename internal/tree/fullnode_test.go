@@ -7,9 +7,10 @@ import (
 
 func TestFullNodeFlag(t *testing.T) {
 	assert.Equal(t, fullNodeFlag(0), flagEmpty)
-	assert.Equal(t, fullNodeFlag(1), flagInt)
-	assert.Equal(t, fullNodeFlag(2), flagFloat)
-	assert.Equal(t, fullNodeFlag(4), flagBool)
+	assert.Equal(t, fullNodeFlag(2), flagInt)
+	assert.Equal(t, fullNodeFlag(4), flagFloat)
+	assert.Equal(t, fullNodeFlag(8), flagBool)
+	//assert.Equal(t, reflect.Uint16, reflect.TypeOf(flagListPrototype).Kind())
 }
 
 func TestFullNodeFlag_Add(t *testing.T) {
@@ -108,11 +109,11 @@ func TestFullNode_SetListPrototype(t *testing.T) {
 	assert.Equal(t, prototype, node.ListPrototype())
 }
 
-func TestFullNode_SetModifyTimeFor(t *testing.T) {
+func TestFullNode_SetModifyTime(t *testing.T) {
 	var node NodeReadWriter = &Node{newFullNode()}
 
-	node.SetModifyTimeFor(NodeKeyObj, 1)
-	assert.Equal(t, ModifyTime(1), node.ModifyTimeFor(NodeKeyObj))
+	node.SetModifyTime(1)
+	assert.Equal(t, ModifyTime(1), node.ModifyTime())
 }
 
 func TestFullNode_Delete(t *testing.T) {
@@ -127,4 +128,18 @@ func TestFullNode_Delete(t *testing.T) {
 	assert.False(t, node.Has(NodeKeyBool))
 	assert.True(t, node.Has(NodeKeyInt))
 	assert.True(t, node.Has(NodeKeyObjPrototype))
+}
+
+func TestFullNode_SetNullFor(t *testing.T) {
+	var node NodeReadWriter = &Node{newFullNode()}
+	assert.False(t, node.IsNullFor(NodeKeyBool))
+	node.SetNullFor(NodeKeyBool, true)
+	assert.True(t, node.IsNullFor(NodeKeyBool))
+}
+
+func TestFullNode_SetNullableFor(t *testing.T) {
+	var node NodeReadWriter = &Node{newFullNode()}
+	assert.False(t, node.NullableFor(NodeKeyString))
+	node.SetNullableFor(NodeKeyString, true)
+	assert.True(t, node.NullableFor(NodeKeyString))
 }

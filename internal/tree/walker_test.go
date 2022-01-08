@@ -32,7 +32,7 @@ func TestWalker_EnterExit(t *testing.T) {
 		handler.Exit()
 		assert.Empty(t, handler.(*walker).stack)
 		assert.Equal(t, root, handler.(*walker).currentNode)
-		assert.Equal(t, buildTime, root.ModifyTimeFor(NodeKeyObj))
+		assert.Equal(t, buildTime, root.ModifyTime())
 		assert.True(t, root.Has(NodeKeyObj))
 	}
 	modify := func() {
@@ -62,35 +62,33 @@ func TestWalker_EnterExit(t *testing.T) {
 			handler.Exit()
 		}()
 		handler.Exit()
-		assert.Equal(t, modifyTime, root.ModifyTimeFor(NodeKeyObj))
-		assert.Equal(t, buildTime, root.Obj()["Server"].ModifyTimeFor(NodeKeyBool))
+		assert.Equal(t, modifyTime, root.ModifyTime())
 	}
 	read := func() {
 		handler := ReadFrom(root)
 
 		assert.True(t, handler.TryEnterObj("Server"))
 		assert.True(t, handler.Bool())
-		assert.Equal(t, modifyTime, handler.ModifyTimeFor(NodeKeyObj))
-		assert.Equal(t, buildTime, handler.ModifyTimeFor(NodeKeyBool))
+		assert.Equal(t, modifyTime, handler.ModifyTime())
 		func() {
 
 			assert.True(t, handler.TryEnterObj("Port"))
 			assert.Equal(t, int64(8080), handler.Int())
-			assert.Equal(t, buildTime, handler.ModifyTimeFor(NodeKeyInt))
+			assert.Equal(t, buildTime, handler.ModifyTime())
 			handler.Exit()
 
 			assert.True(t, handler.TryEnterObj("Host"))
 			assert.Equal(t, "localhost", handler.String())
-			assert.Equal(t, buildTime, handler.ModifyTimeFor(NodeKeyString))
+			assert.Equal(t, buildTime, handler.ModifyTime())
 			handler.Exit()
 
 			assert.True(t, handler.TryEnterObj("CORS"))
-			assert.Equal(t, modifyTime, handler.ModifyTimeFor(NodeKeyList))
+			assert.Equal(t, modifyTime, handler.ModifyTime())
 			func() {
 				for i := 0; i <= 4; i++ {
 					assert.True(t, handler.TryEnterList(i))
 					assert.Equal(t, fmt.Sprintf("localhost:800%d", i), handler.String())
-					assert.Equal(t, modifyTime, handler.ModifyTimeFor(NodeKeyString))
+					assert.Equal(t, modifyTime, handler.ModifyTime())
 					handler.Exit()
 				}
 			}()

@@ -1,11 +1,12 @@
 package tree
 
-type ModifyTime int
+type ModifyTime int8
 
 type NodeKey int
 
 const (
 	NodeKeyInvalid NodeKey = iota
+	NodeKeyDesc
 	NodeKeyInt
 	NodeKeyFloat
 	NodeKeyBool
@@ -41,8 +42,11 @@ type NodeList []*Node
 
 type ReadableInnerNode interface {
 	Has(key NodeKey) bool
-	ModifyTimeFor(key NodeKey) ModifyTime
+	IsNullFor(key NodeKey) bool
+	NullableFor(key NodeKey) bool
+	ModifyTime() ModifyTime
 
+	Desc() string
 	Int() int64
 	Float() float64
 	Bool() bool
@@ -55,9 +59,12 @@ type ReadableInnerNode interface {
 
 type InnerNode interface {
 	ReadableInnerNode
-	SetModifyTimeFor(key NodeKey, time ModifyTime)
-	Delete(key NodeKey)
+	Delete(key NodeKey) InnerNode
+	SetNullFor(key NodeKey, value bool) InnerNode
+	SetNullableFor(key NodeKey, value bool) InnerNode
+	SetModifyTime(time ModifyTime) InnerNode
 
+	SetDesc(value string) InnerNode
 	SetInt(value int64) InnerNode
 	SetFloat(value float64) InnerNode
 	SetBool(value bool) InnerNode
@@ -73,9 +80,12 @@ type NodeReader interface {
 }
 
 type NodeWriter interface {
-	SetModifyTimeFor(key NodeKey, time ModifyTime)
 	Delete(key NodeKey)
+	SetNullFor(key NodeKey, value bool)
+	SetNullableFor(key NodeKey, value bool)
+	SetModifyTime(time ModifyTime)
 
+	SetDesc(value string)
 	SetInt(value int64)
 	SetFloat(value float64)
 	SetBool(value bool)
@@ -101,20 +111,26 @@ func NewNode() *Node {
 	}
 }
 
+// <<<==== readonly methods begin ====>>>
+
 func (node *Node) Has(key NodeKey) bool {
 	return node.Raw.Has(key)
 }
 
-func (node *Node) ModifyTimeFor(key NodeKey) ModifyTime {
-	return node.Raw.ModifyTimeFor(key)
+func (node *Node) IsNullFor(key NodeKey) bool {
+	return node.Raw.IsNullFor(key)
 }
 
-func (node *Node) SetModifyTimeFor(key NodeKey, time ModifyTime) {
-	node.Raw.SetModifyTimeFor(key, time)
+func (node *Node) NullableFor(key NodeKey) bool {
+	return node.Raw.NullableFor(key)
 }
 
-func (node *Node) Delete(key NodeKey) {
-	node.Raw.Delete(key)
+func (node *Node) ModifyTime() ModifyTime {
+	return node.Raw.ModifyTime()
+}
+
+func (node *Node) Desc() string {
+	return node.Desc()
 }
 
 func (node *Node) Int() int64 {
@@ -149,6 +165,30 @@ func (node *Node) ListPrototype() *Node {
 	return node.Raw.ListPrototype()
 }
 
+// <<----- readonly methods end ----->>
+
+// <<<==== side-effect methods begin ====>>>
+
+func (node *Node) SetNullFor(key NodeKey, value bool) {
+	node.Raw = node.Raw.SetNullFor(key, value)
+}
+
+func (node *Node) SetModifyTime(time ModifyTime) {
+	node.Raw = node.Raw.SetModifyTime(time)
+}
+
+func (node *Node) SetNullableFor(key NodeKey, value bool) {
+	node.Raw = node.Raw.SetNullableFor(key, value)
+}
+
+func (node *Node) Delete(key NodeKey) {
+	node.Raw = node.Raw.Delete(key)
+}
+
+func (node *Node) SetDesc(value string) {
+	node.Raw = node.Raw.SetDesc(value)
+}
+
 func (node *Node) SetInt(value int64) {
 	node.Raw = node.Raw.SetInt(value)
 }
@@ -180,3 +220,5 @@ func (node *Node) SetObjPrototype(value *Node) {
 func (node *Node) SetListPrototype(value *Node) {
 	node.Raw = node.Raw.SetListPrototype(value)
 }
+
+// <<----- side-effect methods begin ----->>

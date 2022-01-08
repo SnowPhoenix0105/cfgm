@@ -1,10 +1,11 @@
 package tree
 
-type fullNodeFlag int32
+type fullNodeFlag uint16
 
 const (
 	flagEmpty fullNodeFlag = 0
-	flagInt   fullNodeFlag = 1 << (iota - 1)
+	flagDesc  fullNodeFlag = 1 << (iota - 1)
+	flagInt
 	flagFloat
 	flagBool
 	flagString
@@ -12,6 +13,7 @@ const (
 	flagList
 	flagObjPrototype
 	flagListPrototype
+	// flagOverflow
 )
 
 func (flag fullNodeFlag) has(target fullNodeFlag) bool {
@@ -31,6 +33,8 @@ func (flag *fullNodeFlag) delete(target fullNodeFlag) {
 
 func keyToFlag(key NodeKey) fullNodeFlag {
 	switch key {
+	case NodeKeyDesc:
+		return flagDesc
 	case NodeKeyInt:
 		return flagInt
 	case NodeKeyFloat:
@@ -53,9 +57,12 @@ func keyToFlag(key NodeKey) fullNodeFlag {
 }
 
 type fullNode struct {
-	flags      fullNodeFlag
-	modifyTime map[NodeKey]ModifyTime
+	validFlags    fullNodeFlag
+	nullFlags     fullNodeFlag
+	nullableFlags fullNodeFlag
+	modifyTime    ModifyTime
 
+	descValue   string
 	intValue    int64
 	floatValue  float64
 	boolValue   bool
@@ -69,48 +76,40 @@ type fullNode struct {
 
 func newFullNode() *fullNode {
 	ret := new(fullNode)
-	ret.init()
 	return ret
 }
 
 func makeFullNode() fullNode {
 	ret := fullNode{}
-	ret.init()
 	return ret
 }
 
-func (node *fullNode) init() {
-	node.flags = flagEmpty
-	node.modifyTime = make(map[NodeKey]ModifyTime)
-}
+// <<<==== readonly methods begin ====>>>
 
 func (node *fullNode) Has(key NodeKey) bool {
 	flag := keyToFlag(key)
 	if flag == flagEmpty {
 		return false
 	}
-	return node.flags.has(flag)
+	return node.validFlags.has(flag)
 }
 
-func (node *fullNode) ModifyTimeFor(key NodeKey) ModifyTime {
-	time, ok := node.modifyTime[key]
-	if !ok {
-		return -1
-		//panic(errors.New(fmt.Sprintf("modify time for %s not exist", key.String())))
-	}
-	return time
-}
-
-func (node *fullNode) SetModifyTimeFor(key NodeKey, time ModifyTime) {
-	node.modifyTime[key] = time
-}
-
-func (node *fullNode) Delete(key NodeKey) {
+func (node *fullNode) IsNullFor(key NodeKey) bool {
 	flag := keyToFlag(key)
-	if flag == flagEmpty {
-		return
-	}
-	node.flags.delete(flag)
+	return node.nullFlags.has(flag)
+}
+
+func (node *fullNode) NullableFor(key NodeKey) bool {
+	flag := keyToFlag(key)
+	return node.nullableFlags.has(flag)
+}
+
+func (node *fullNode) ModifyTime() ModifyTime {
+	return node.modifyTime
+}
+
+func (node *fullNode) Desc() string {
+	return node.descValue
 }
 
 func (node *fullNode) Int() int64 {
@@ -145,50 +144,96 @@ func (node *fullNode) ListPrototype() *Node {
 	return node.listPrototype
 }
 
+// <<----- readonly methods end ----->>
+
+// <<<==== side-effect methods begin ====>>>
+
+func (node *fullNode) SetNullFor(key NodeKey, value bool) InnerNode {
+	flag := keyToFlag(key)
+	if value {
+		node.nullFlags.add(flag)
+	} else {
+		node.nullFlags.delete(flag)
+	}
+	return node
+}
+
+func (node *fullNode) SetNullableFor(key NodeKey, value bool) InnerNode {
+	flag := keyToFlag(key)
+	if value {
+		node.nullableFlags.add(flag)
+	} else {
+		node.nullableFlags.delete(flag)
+	}
+	return node
+}
+
+func (node *fullNode) Delete(key NodeKey) InnerNode {
+	flag := keyToFlag(key)
+	if flag == flagEmpty {
+		return node
+	}
+	node.validFlags.delete(flag)
+	return node
+}
+
+func (node *fullNode) SetDesc(value string) InnerNode {
+	node.descValue = value
+	node.validFlags.add(flagDesc)
+	return node
+}
+
+func (node *fullNode) SetModifyTime(time ModifyTime) InnerNode {
+	node.modifyTime = time
+	return node
+}
+
 func (node *fullNode) SetInt(value int64) InnerNode {
 	node.intValue = value
-	node.flags.add(flagInt)
+	node.validFlags.add(flagInt)
 	return node
 }
 
 func (node *fullNode) SetFloat(value float64) InnerNode {
 	node.floatValue = value
-	node.flags.add(flagFloat)
+	node.validFlags.add(flagFloat)
 	return node
 }
 
 func (node *fullNode) SetBool(value bool) InnerNode {
 	node.boolValue = value
-	node.flags.add(flagBool)
+	node.validFlags.add(flagBool)
 	return node
 }
 
 func (node *fullNode) SetString(value string) InnerNode {
 	node.stringValue = value
-	node.flags.add(flagString)
+	node.validFlags.add(flagString)
 	return node
 }
 
 func (node *fullNode) SetObj(value NodeObj) InnerNode {
 	node.objValue = value
-	node.flags.add(flagObj)
+	node.validFlags.add(flagObj)
 	return node
 }
 
 func (node *fullNode) SetList(value NodeList) InnerNode {
 	node.listValue = value
-	node.flags.add(flagList)
+	node.validFlags.add(flagList)
 	return node
 }
 
 func (node *fullNode) SetObjPrototype(value *Node) InnerNode {
 	node.objPrototype = value
-	node.flags.add(flagObjPrototype)
+	node.validFlags.add(flagObjPrototype)
 	return node
 }
 
 func (node *fullNode) SetListPrototype(value *Node) InnerNode {
 	node.listPrototype = value
-	node.flags.add(flagListPrototype)
+	node.validFlags.add(flagListPrototype)
 	return node
 }
+
+// <<----- side-effect methods begin ----->>
