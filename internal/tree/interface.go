@@ -17,6 +17,18 @@ const (
 	NodeKeyListPrototype
 )
 
+var NodeKeys = [...]NodeKey{
+	NodeKeyDesc,
+	NodeKeyInt,
+	NodeKeyFloat,
+	NodeKeyBool,
+	NodeKeyString,
+	NodeKeyObj,
+	NodeKeyList,
+	NodeKeyObjPrototype,
+	NodeKeyListPrototype,
+}
+
 func (key NodeKey) String() string {
 	switch key {
 	case NodeKeyInt:

@@ -2,6 +2,7 @@ package obj2tree
 
 import (
 	"github.com/SnowPhoenix0105/cfgm/internal/tree"
+	"github.com/SnowPhoenix0105/deepcopy"
 	"reflect"
 )
 
@@ -9,6 +10,7 @@ type buildEnv struct {
 	DescTag             string
 	PrototypeKey        string
 	Walker              tree.Walker
+	DeepCopy            deepcopy.Copier
 	prototypeKeyReflect reflect.Value
 }
 
@@ -112,7 +114,9 @@ func (env *buildEnv) buildFromField(obj reflect.Value, field reflect.StructField
 	defer env.Walker.Exit()
 
 	elem, property := env.unwrapPointerForField(obj)
-	// TODO check
+	if elem.Kind() == reflect.Ptr {
+		return newPointerError(3, "field type of struct")
+	}
 	err := env.buildFrom(elem, property)
 	if err != nil {
 		return err
@@ -139,7 +143,9 @@ func (env *buildEnv) unwrapPointerForElem(ptr reflect.Value) (elem reflect.Value
 
 func (env *buildEnv) buildFromSlice(obj reflect.Value, property kvProperty) error {
 	isPtr := obj.Type().Elem().Kind() == reflect.Ptr
-	// TODO check
+	if isPtr && obj.Type().Elem().Elem().Kind() == reflect.Ptr {
+		return newPointerError(2, "elem type of slice")
+	}
 	env.Walker.SetClearWhenEnterFor(tree.NodeKeyList, !isPtr)
 
 	length := obj.Len()
@@ -160,7 +166,7 @@ func (env *buildEnv) buildFromSlice(obj reflect.Value, property kvProperty) erro
 		if typ.Kind() == reflect.Ptr {
 			typ = typ.Elem()
 		}
-		err := env.buildFrom(reflect.Zero(typ), kvProperty{true, true})
+		err := env.buildFrom(reflect.Zero(typ), kvProperty{false, false})
 		env.Walker.Exit()
 		if err != nil {
 			return err
@@ -182,30 +188,45 @@ func (env *buildEnv) buildFromSlice(obj reflect.Value, property kvProperty) erro
 	return nil
 }
 
+func (env *buildEnv) buildFromKvPair(obj, key, value *reflect.Value) error {
+	elem, prop := env.unwrapPointerForElem(*value)
+	var err error
+	if !prop.nullable {
+		cpy := env.DeepCopy.AddressableOfReflect(elem)
+		err = env.buildFrom(cpy, prop)
+		obj.SetMapIndex(*key, cpy)
+	} else {
+		err = env.buildFrom(elem, prop)
+	}
+	return err
+}
+
 func (env *buildEnv) buildFromMap(obj reflect.Value, property kvProperty) error {
 	isPtr := obj.Type().Elem().Kind() == reflect.Ptr
-	// TODO check
-	env.Walker.SetClearWhenEnterFor(tree.NodeKeyList, !isPtr)
+	if isPtr && obj.Type().Elem().Elem().Kind() == reflect.Ptr {
+		return newPointerError(2, "value type of map")
+	}
+	env.Walker.SetClearWhenEnterFor(tree.NodeKeyObj, !isPtr)
 
 	if !env.prototypeKeyReflect.IsValid() {
 		env.prototypeKeyReflect = reflect.ValueOf(env.PrototypeKey)
 	}
 	prototype := obj.MapIndex(env.prototypeKeyReflect)
 	if prototype.IsValid() {
-		env.Walker.EnterListPrototype()
-		err := env.buildFrom(env.unwrapPointerForElem(prototype))
+		env.Walker.EnterObjPrototype()
+		err := env.buildFromKvPair(&obj, &env.prototypeKeyReflect, &prototype)
 		env.Walker.Exit()
 		if err != nil {
 			return err
 		}
 		obj.SetMapIndex(env.prototypeKeyReflect, reflect.Value{})
 	} else {
-		env.Walker.EnterListPrototype()
+		env.Walker.EnterObjPrototype()
 		typ := obj.Type().Elem()
 		if typ.Kind() == reflect.Ptr {
 			typ = typ.Elem()
 		}
-		err := env.buildFrom(reflect.Zero(typ), kvProperty{true, true})
+		err := env.buildFrom(reflect.Zero(typ), kvProperty{false, false})
 		env.Walker.Exit()
 		if err != nil {
 			return err
@@ -214,8 +235,10 @@ func (env *buildEnv) buildFromMap(obj reflect.Value, property kvProperty) error 
 
 	iter := obj.MapRange()
 	for iter.Next() {
-		env.Walker.EnterObj(iter.Key().String())
-		err := env.buildFrom(env.unwrapPointerForElem(iter.Value()))
+		key := iter.Key()
+		value := iter.Value()
+		env.Walker.EnterObj(key.String())
+		err := env.buildFromKvPair(&obj, &key, &value)
 		env.Walker.Exit()
 		if err != nil {
 			return err
