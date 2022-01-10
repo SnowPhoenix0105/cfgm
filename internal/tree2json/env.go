@@ -10,25 +10,61 @@ type dumpEnv struct {
 	walker tree.ReadonlyWalker
 }
 
+// <<<==== distribute begin ====>>>
+
 func (env *dumpEnv) dump() {
-	if env.walker.Has(tree.NodeKeyObjPrototype) || env.walker.Has(tree.NodeKeyObj) {
-		env.dumpObj()
-	} else if env.walker.Has(tree.NodeKeyString) {
-		env.dumpString(env.walker.String())
-	} else if env.walker.Has(tree.NodeKeyInt) {
-		env.json.WriteString(strconv.FormatInt(env.walker.Int(), 10))
-	} else if env.walker.Has(tree.NodeKeyFloat) {
-		env.json.WriteString(strconv.FormatFloat(env.walker.Float(), 'f', 3, 64))
-	} else if env.walker.Has(tree.NodeKeyBool) {
-		if env.walker.Bool() {
-			env.json.WriteString("true")
-		} else {
-			env.json.WriteString("false")
-		}
-	} else if env.walker.Has(tree.NodeKeyListPrototype) || env.walker.Has(tree.NodeKeyList) {
-		env.dumpList()
+	tree.DistributeOnWalker(env.walker, env)
+}
+
+func (env *dumpEnv) HandleInt() {
+	env.json.WriteString(strconv.FormatInt(env.walker.Int(), 10))
+}
+
+func (env *dumpEnv) HandleFloat() {
+	env.json.WriteString(strconv.FormatFloat(env.walker.Float(), 'f', 3, 64))
+}
+
+func (env *dumpEnv) HandleBool() {
+	if env.walker.Bool() {
+		env.json.WriteString("true")
+	} else {
+		env.json.WriteString("false")
 	}
 }
+
+func (env *dumpEnv) HandleString() {
+	env.dumpString(env.walker.String())
+}
+
+func (env *dumpEnv) HandleObj() {
+	env.dumpObj()
+}
+
+func (env *dumpEnv) HandleList() {
+	env.dumpList()
+}
+
+// <<----- distribute end ----->>
+
+//func (env *dumpEnv) dump() {
+//	if env.walker.Has(tree.NodeKeyObjPrototype) || env.walker.Has(tree.NodeKeyObj) {
+//		env.dumpObj()
+//	} else if env.walker.Has(tree.NodeKeyString) {
+//		env.dumpString(env.walker.String())
+//	} else if env.walker.Has(tree.NodeKeyInt) {
+//		env.json.WriteString(strconv.FormatInt(env.walker.Int(), 10))
+//	} else if env.walker.Has(tree.NodeKeyFloat) {
+//		env.json.WriteString(strconv.FormatFloat(env.walker.Float(), 'f', 3, 64))
+//	} else if env.walker.Has(tree.NodeKeyBool) {
+//		if env.walker.Bool() {
+//			env.json.WriteString("true")
+//		} else {
+//			env.json.WriteString("false")
+//		}
+//	} else if env.walker.Has(tree.NodeKeyListPrototype) || env.walker.Has(tree.NodeKeyList) {
+//		env.dumpList()
+//	}
+//}
 
 func (env *dumpEnv) dumpString(str string) {
 	env.json.WriteRune('"')
