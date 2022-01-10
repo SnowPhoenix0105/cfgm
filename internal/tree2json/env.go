@@ -75,9 +75,6 @@ func (env *dumpEnv) dumpObj() {
 			env.json.WriteRune(',')
 		}
 		env.json.EndLine()
-		env.dumpString(key)
-		env.json.WriteRune(':')
-		env.json.WriteSpace()
 
 		ok := env.walker.TryEnterObj(key)
 		if DEBUG {
@@ -85,7 +82,17 @@ func (env *dumpEnv) dumpObj() {
 				panic("TryEnterObj() cannot enter with key from walker.ObjKeys()")
 			}
 		}
+
+		if env.walker.Has(tree.NodeKeyDesc) {
+			env.json.CommentAndNewLine(env.walker.Desc())
+		}
+
+		env.dumpString(key)
+		env.json.WriteRune(':')
+		env.json.WriteSpace()
+
 		env.dump()
+
 		env.walker.Exit()
 	}
 

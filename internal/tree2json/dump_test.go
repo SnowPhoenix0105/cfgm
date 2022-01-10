@@ -8,20 +8,20 @@ import (
 
 func TestAll(t *testing.T) {
 	type Person struct {
-		Name   string
-		Age    int
-		Height float64
+		Name   string  `desc:"the name of the person"`
+		Age    int     `desc:"the age of the person"`
+		Height float64 `desc:"the height of the person (in meter)"`
 	}
 	type Date struct {
 		Year  int
 		Month string
 	}
 	type Family struct {
-		Father   Person
-		Mother   Person
-		Children []*Person
-		Travel   map[string]*Date
-		Money    map[string]float64
+		Father   Person             `desc:"the man of the family"`
+		Mother   Person             `desc:"the hostess of this family"`
+		Children []*Person          `desc:"the children of the family"`
+		Travel   map[string]*Date   `desc:"places that this family has traveled to"`
+		Money    map[string]float64 `desc:"income and expenditure"`
 	}
 
 	obj := Family{
@@ -36,17 +36,17 @@ func TestAll(t *testing.T) {
 			Height: 1.70,
 		},
 		Children: []*Person{
-			&Person{
+			{
 				Name:   "Tom",
 				Age:    21,
 				Height: 1.81,
 			},
-			&Person{
+			{
 				Name:   "Mary",
 				Age:    19,
 				Height: 1.73,
 			},
-			&Person{
+			{
 				Name:   "Child",
 				Age:    0,
 				Height: 0.50,
@@ -54,11 +54,11 @@ func TestAll(t *testing.T) {
 			nil,
 		}[:3],
 		Travel: map[string]*Date{
-			"__prototype__": &Date{
+			"__prototype__": {
 				Year:  2000,
 				Month: "January",
 			},
-			"Beijing": &Date{
+			"Beijing": {
 				Year:  2021,
 				Month: "February",
 			},

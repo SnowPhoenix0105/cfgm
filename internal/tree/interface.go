@@ -149,7 +149,7 @@ func (node *Node) ModifyTime() ModifyTime {
 }
 
 func (node *Node) Desc() string {
-	return node.Desc()
+	return node.Raw.Desc()
 }
 
 func (node *Node) Int() int64 {
