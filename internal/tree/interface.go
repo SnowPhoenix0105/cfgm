@@ -116,8 +116,6 @@ type NodeWriter interface {
 type NodeReadWriter interface {
 	NodeReader
 	NodeWriter
-
-	Copy() NodeReadWriter
 }
 
 type Node struct {
