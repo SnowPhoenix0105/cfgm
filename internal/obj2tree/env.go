@@ -44,6 +44,8 @@ func (env *buildEnv) distribute(obj reflect.Value, property kvProperty) error {
 	panic("not implement")
 }
 
+// <<<==== simple-type begin ====>>>
+
 func (env *buildEnv) buildFromInt(obj reflect.Value, property kvProperty) error {
 	env.Walker.SetInt(obj.Int())
 	env.Walker.SetNullFor(tree.NodeKeyInt, property.isNull)
@@ -71,6 +73,10 @@ func (env *buildEnv) buildFromString(obj reflect.Value, property kvProperty) err
 	env.Walker.SetNullableFor(tree.NodeKeyString, property.nullable)
 	return nil
 }
+
+// <<----- simple-type end ----->>
+
+// <<<==== struct begin ====>>>
 
 func (env *buildEnv) buildFromStruct(obj reflect.Value, property kvProperty) error {
 	typ := obj.Type()
@@ -128,6 +134,10 @@ func (env *buildEnv) buildFromField(obj reflect.Value, field reflect.StructField
 	}
 	return nil
 }
+
+// <<----- struct end ----->>
+
+// <<<==== slice begin ====>>>
 
 func (env *buildEnv) unwrapPointerForElem(ptr reflect.Value) (elem reflect.Value, property kvProperty) {
 	if ptr.Kind() != reflect.Ptr {
@@ -187,6 +197,10 @@ func (env *buildEnv) buildFromSlice(obj reflect.Value, property kvProperty) erro
 	env.Walker.SetNullableFor(tree.NodeKeyList, property.nullable)
 	return nil
 }
+
+// <<----- slice end ----->>
+
+// <<<==== map begin ====>>>
 
 func (env *buildEnv) buildFromKvPair(obj, key, value *reflect.Value) error {
 	elem, prop := env.unwrapPointerForElem(*value)
@@ -249,3 +263,5 @@ func (env *buildEnv) buildFromMap(obj reflect.Value, property kvProperty) error 
 	env.Walker.SetNullableFor(tree.NodeKeyObj, property.nullable)
 	return nil
 }
+
+// <<----- map end ----->>
