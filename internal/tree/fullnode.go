@@ -229,6 +229,32 @@ func (node *fullNode) ListPrototype() *Node {
 	return node.listPrototype
 }
 
+func (node *fullNode) Copy() InnerNode {
+	var ret fullNode
+	ret = *node
+	if node.objValue != nil {
+		m := NodeObj{}
+		for k, v := range node.objValue {
+			m[k] = v.Copy()
+		}
+		ret.objValue = m
+	}
+	if node.listValue != nil {
+		l := make(NodeList, len(node.listValue), cap(node.listValue))
+		for i, elem := range node.listValue {
+			l[i] = elem.Copy()
+		}
+		ret.listValue = l
+	}
+	if node.objPrototype != nil {
+		ret.objPrototype = node.objPrototype.Copy()
+	}
+	if node.listPrototype != nil {
+		ret.listPrototype = node.listPrototype.Copy()
+	}
+	return &ret
+}
+
 // <<----- readonly methods end ----->>
 
 // <<<==== side-effect methods begin ====>>>

@@ -186,6 +186,10 @@ func (walker *walker) ListPrototype() *Node {
 
 // <<<==== side-effect methods begin ====>>>
 
+func (walker *walker) CurrentNode() *Node {
+	return walker.currentNode
+}
+
 func (walker *walker) setModifyTimeForParentNodes() {
 	length := len(walker.stack)
 	for i := length - 1; i >= 0; i-- {
@@ -201,10 +205,17 @@ func (walker *walker) needClear(key NodeKey) bool {
 	return walker.currentNode.ClearWhenEnterFor(key) && walker.currentNode.ModifyTime() != walker.time
 }
 
+func (walker *walker) newObjNode() *Node {
+	if walker.currentNode.Has(NodeKeyObjPrototype) && walker.time != walker.currentNode.ModifyTime() {
+		return walker.currentNode.ObjPrototype().Copy()
+	}
+	return NewNode()
+}
+
 func (walker *walker) EnterObj(key string) {
 	var next *Node
 	if !walker.currentNode.Has(NodeKeyObj) || walker.needClear(NodeKeyObj) {
-		next = NewNode()
+		next = walker.newObjNode()
 		walker.currentNode.SetObj(map[string]*Node{key: next})
 		walker.currentNode.SetModifyTime(walker.time)
 		walker.setModifyTimeForParentNodes()
@@ -213,7 +224,7 @@ func (walker *walker) EnterObj(key string) {
 		var ok bool
 		next, ok = obj[key]
 		if !ok {
-			next = NewNode()
+			next = walker.newObjNode()
 			obj[key] = next
 			walker.currentNode.SetObj(obj)
 			walker.currentNode.SetModifyTime(walker.time)
@@ -224,12 +235,19 @@ func (walker *walker) EnterObj(key string) {
 	walker.currentNode = next
 }
 
+func (walker *walker) newListNode() *Node {
+	if walker.currentNode.Has(NodeKeyListPrototype) && walker.time != walker.currentNode.ModifyTime() {
+		return walker.currentNode.ListPrototype().Copy()
+	}
+	return NewNode()
+}
+
 func (walker *walker) EnterList(index int) {
 	var next *Node
 	if !walker.currentNode.Has(NodeKeyList) || walker.needClear(NodeKeyList) {
 		list := make(NodeList, index+1)
 		for i := 0; i <= index; i++ {
-			next = NewNode()
+			next = walker.newListNode()
 			list[i] = next
 		}
 		list[index] = next
@@ -243,7 +261,7 @@ func (walker *walker) EnterList(index int) {
 			next = list[index]
 		} else {
 			for i := length; i <= index; i++ {
-				next = NewNode()
+				next = walker.newListNode()
 				list = append(list, next)
 			}
 			walker.currentNode.SetList(list)

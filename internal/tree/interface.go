@@ -87,6 +87,8 @@ type InnerNode interface {
 	SetList(value NodeList) InnerNode
 	SetObjPrototype(value *Node) InnerNode
 	SetListPrototype(value *Node) InnerNode
+
+	Copy() InnerNode
 }
 
 type NodeReader interface {
@@ -114,6 +116,8 @@ type NodeWriter interface {
 type NodeReadWriter interface {
 	NodeReader
 	NodeWriter
+
+	Copy() NodeReadWriter
 }
 
 type Node struct {
@@ -182,6 +186,10 @@ func (node *Node) ObjPrototype() *Node {
 
 func (node *Node) ListPrototype() *Node {
 	return node.Raw.ListPrototype()
+}
+
+func (node *Node) Copy() *Node {
+	return &Node{Raw: node.Raw.Copy()}
 }
 
 // <<----- readonly methods end ----->>
