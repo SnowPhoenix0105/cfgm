@@ -3,6 +3,8 @@ package tree
 type ReadonlyWalker interface {
 	NodeReader
 
+	ObjKeys() []string
+	ListLen() int
 	TryEnterObj(key string) bool
 	TryEnterList(index int) bool
 	TryEnterObjPrototype() bool
@@ -52,6 +54,25 @@ type walker struct {
 }
 
 // <<<==== readonly methods begin ====>>>
+
+func (walker *walker) ObjKeys() []string {
+	if !walker.currentNode.Has(NodeKeyObj) {
+		return nil
+	}
+	ret := make([]string, 0)
+	obj := walker.currentNode.Obj()
+	for k := range obj {
+		ret = append(ret, k)
+	}
+	return ret
+}
+
+func (walker *walker) ListLen() int {
+	if !walker.currentNode.Has(NodeKeyList) {
+		return 0
+	}
+	return len(walker.currentNode.List())
+}
 
 func (walker *walker) TryEnterObj(key string) bool {
 	if !walker.currentNode.Has(NodeKeyObj) {
