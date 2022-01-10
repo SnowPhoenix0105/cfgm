@@ -16,6 +16,7 @@ func BuildFrom(obj interface{}, time tree.ModifyTime) (*tree.Node, error) {
 			IgnoreUnexploredFields: false,
 		}),
 	}
-	err := env.buildFrom(reflect.ValueOf(obj), kvProperty{false, false})
+
+	err := env.buildFrom(reflect.Indirect(reflect.ValueOf(obj)), kvProperty{false, false})
 	return root, err
 }
