@@ -206,8 +206,11 @@ func (walker *walker) needClear(key NodeKey) bool {
 }
 
 func (walker *walker) newObjNode() *Node {
-	if walker.currentNode.Has(NodeKeyObjPrototype) && walker.time != walker.currentNode.ModifyTime() {
-		return walker.currentNode.ObjPrototype().Copy()
+	if walker.currentNode.Has(NodeKeyObjPrototype) {
+		prototype := walker.currentNode.ObjPrototype()
+		if walker.time != prototype.ModifyTime() {
+			return prototype.Copy()
+		}
 	}
 	return NewNode()
 }
@@ -236,8 +239,11 @@ func (walker *walker) EnterObj(key string) {
 }
 
 func (walker *walker) newListNode() *Node {
-	if walker.currentNode.Has(NodeKeyListPrototype) && walker.time != walker.currentNode.ModifyTime() {
-		return walker.currentNode.ListPrototype().Copy()
+	if walker.currentNode.Has(NodeKeyListPrototype) {
+		prototype := walker.currentNode.ListPrototype()
+		if walker.time != prototype.ModifyTime() {
+			return prototype.Copy()
+		}
 	}
 	return NewNode()
 }
