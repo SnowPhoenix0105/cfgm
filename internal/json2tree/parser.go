@@ -148,29 +148,36 @@ func (env *parser) parseNode() error {
 		}
 	}
 	switch env.tokenType() {
+
 	case TokenInt:
 		integer := env.lex.Int()
 		env.getToken()
 		env.walker.SetInt(integer)
 		env.walker.SetNullFor(tree.NodeKeyInt, false)
+		env.walker.SetFloat(float64(integer))
+		env.walker.SetNullFor(tree.NodeKeyFloat, false)
 		return nil
-	case TokenString:
-		str := env.lex.String()
+
+	case TokenFloat:
+		f := env.lex.Float()
 		env.getToken()
-		env.walker.SetString(str)
-		env.walker.SetNullFor(tree.NodeKeyString, false)
+		env.walker.SetFloat(f)
+		env.walker.SetNullFor(tree.NodeKeyFloat, false)
 		return nil
+
 	case TokenBool:
 		b := env.lex.Bool()
 		env.getToken()
 		env.walker.SetBool(b)
 		env.walker.SetNullFor(tree.NodeKeyBool, false)
 		return nil
-	case TokenFloat:
-		f := env.lex.Float()
+
+	case TokenString:
+		str := env.lex.String()
 		env.getToken()
-		env.walker.SetFloat(f)
-		env.walker.SetNullFor(tree.NodeKeyFloat, false)
+		env.walker.SetString(str)
+		env.walker.SetNullFor(tree.NodeKeyString, false)
+
 		return nil
 	case TokenNull:
 		env.getToken()
@@ -178,8 +185,10 @@ func (env *parser) parseNode() error {
 		return nil
 	case TokenLeftBrace:
 		return env.parseObject()
+
 	case TokenLeftSquare:
 		return env.parseList()
+
 	default:
 		return env.unexpectError()
 	}
