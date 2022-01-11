@@ -229,28 +229,31 @@ func (node *fullNode) ListPrototype() *Node {
 	return node.listPrototype
 }
 
-func (node *fullNode) Copy() InnerNode {
+func (node *fullNode) Copy(time ModifyTime) InnerNode {
 	var ret fullNode
 	ret = *node
+	if time > 0 {
+		ret.modifyTime = time
+	}
 	if node.objValue != nil {
 		m := NodeObj{}
 		for k, v := range node.objValue {
-			m[k] = v.Copy()
+			m[k] = v.Copy(time)
 		}
 		ret.objValue = m
 	}
 	if node.listValue != nil {
 		l := make(NodeList, len(node.listValue), cap(node.listValue))
 		for i, elem := range node.listValue {
-			l[i] = elem.Copy()
+			l[i] = elem.Copy(time)
 		}
 		ret.listValue = l
 	}
 	if node.objPrototype != nil {
-		ret.objPrototype = node.objPrototype.Copy()
+		ret.objPrototype = node.objPrototype.Copy(time)
 	}
 	if node.listPrototype != nil {
-		ret.listPrototype = node.listPrototype.Copy()
+		ret.listPrototype = node.listPrototype.Copy(time)
 	}
 	return &ret
 }

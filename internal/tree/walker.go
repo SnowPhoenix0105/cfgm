@@ -209,7 +209,7 @@ func (walker *walker) newObjNode() *Node {
 	if walker.currentNode.Has(NodeKeyObjPrototype) {
 		prototype := walker.currentNode.ObjPrototype()
 		if walker.time != prototype.ModifyTime() {
-			return prototype.Copy()
+			return prototype.Copy(walker.time)
 		}
 	}
 	return NewNode()
@@ -242,7 +242,7 @@ func (walker *walker) newListNode() *Node {
 	if walker.currentNode.Has(NodeKeyListPrototype) {
 		prototype := walker.currentNode.ListPrototype()
 		if walker.time != prototype.ModifyTime() {
-			return prototype.Copy()
+			return prototype.Copy(walker.time)
 		}
 	}
 	return NewNode()

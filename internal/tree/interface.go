@@ -88,7 +88,7 @@ type InnerNode interface {
 	SetObjPrototype(value *Node) InnerNode
 	SetListPrototype(value *Node) InnerNode
 
-	Copy() InnerNode
+	Copy(time ModifyTime) InnerNode
 }
 
 type NodeReader interface {
@@ -186,8 +186,8 @@ func (node *Node) ListPrototype() *Node {
 	return node.Raw.ListPrototype()
 }
 
-func (node *Node) Copy() *Node {
-	return &Node{Raw: node.Raw.Copy()}
+func (node *Node) Copy(time ModifyTime) *Node {
+	return &Node{Raw: node.Raw.Copy(time)}
 }
 
 // <<----- readonly methods end ----->>
