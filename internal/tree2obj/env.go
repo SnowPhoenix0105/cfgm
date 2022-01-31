@@ -7,7 +7,7 @@ import (
 )
 
 type refillEnv struct {
-	walker    tree.Walker
+	walker    tree.ReadonlyWalker
 	buildTime tree.ModifyTime
 }
 

@@ -1,11 +1,15 @@
 package cfgm
 
-var defaultContext = NewConfigManageContext(&ConfigManageContextOptions{
+import (
+	"github.com/SnowPhoenix0105/cfgm/pkg/controller"
+)
+
+var defaultContext = controller.NewConfigManageContext(&controller.ConfigManageContextOptions{
 	CommandLinePrefix:    "",
 	ConfigFilePathPrefix: "",
 })
 
-func Register(path string, ptrToConfigObject interface{}, callback ConfigManageCallback) {
+func Register(path string, ptrToConfigObject interface{}, callback controller.ConfigManageCallback) {
 	defaultContext.Register(path, ptrToConfigObject, callback)
 }
 

@@ -11,7 +11,18 @@ func Refill(
 	buildTime tree.ModifyTime,
 	currentTime tree.ModifyTime) {
 	env := refillEnv{
-		walker:    tree.WriteFrom(root, currentTime),
+		walker:    tree.ReadFrom(root),
+		buildTime: buildTime,
+	}
+	env.refill(reflect.Indirect(reflect.ValueOf(obj)))
+}
+
+func RefillFrom(
+	walker tree.ReadonlyWalker,
+	obj interface{},
+	buildTime tree.ModifyTime) {
+	env := refillEnv{
+		walker:    walker,
 		buildTime: buildTime,
 	}
 	env.refill(reflect.Indirect(reflect.ValueOf(obj)))
